@@ -11,6 +11,7 @@ set(MX_Defines_Syms
 # STM32CubeMX generated include paths
 set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F4xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/include
@@ -29,6 +30,20 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32f4xx_hal_timebase_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sysmem.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/task_auth.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/task_cloud.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/task_display.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/task_keypad.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/task_logger.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/task_supervisor.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_as608.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_buzzer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_esp8266.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_keypad.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_oled.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_rc522.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_relay.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/Custom/Src/drv_w25q64.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32f407xx.s
 )
 
@@ -83,7 +98,8 @@ set(MX_LINK_DIRS
 set(MX_LINK_LIBS 
     STM32_Drivers
     ${TOOLCHAIN_LINK_LIBRARIES}
-    FreeRTOS	
+    FreeRTOS
+	
 )
 # Interface library for includes and symbols
 add_library(stm32cubemx INTERFACE)

@@ -22,7 +22,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "task_auth.h"
+#include "task_display.h"
+#include "task_cloud.h"
+#include "task_keypad.h"
+#include "task_logger.h"
+#include "task_supervisor.h"
+#include "drv_relay.h"
+#include "drv_buzzer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,7 +108,11 @@ const osSemaphoreAttr_t myCountingSem01_attributes = {
   .name = "myCountingSem01"
 };
 /* USER CODE BEGIN PV */
-
+system_state_t g_sys_state = STATE_IDLE;
+uint32_t g_boot_time = 0;
+EventGroupHandle_t g_sys_events = NULL;
+QueueHandle_t g_auth_queue = NULL, g_log_queue = NULL, g_display_queue = NULL, g_cloud_queue = NULL, g_cmd_queue = NULL;
+SemaphoreHandle_t g_flash_mutex = NULL, g_user_mutex = NULL, g_display_mutex = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,7 +137,27 @@ void Callback01(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void system_set_state(system_state_t s) { g_sys_state = s; }
 
+const char* auth_method_str(auth_method_t m) {
+    switch (m) {
+        case AUTH_METHOD_FINGERPRINT: return "fingerprint";
+        case AUTH_METHOD_RFID:        return "RFID";
+        case AUTH_METHOD_PASSWORD:    return "password";
+        default:                      return "unknown";
+    }
+}
+
+const char* auth_result_str(auth_result_t r) {
+    switch (r) {
+        case AUTH_SUCCESS:      return "success";
+        case AUTH_FAIL_WRONG:   return "wrong";
+        case AUTH_FAIL_LOCKOUT: return "lockout";
+        default:                return "unknown";
+    }
+}
+
+uint32_t get_timestamp(void) { return HAL_GetTick() + g_boot_time; }
 /* USER CODE END 0 */
 
 /**
@@ -168,7 +199,9 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  g_boot_time = HAL_GetTick();
+  relay_init();
+  buzzer_init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -210,6 +243,15 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  g_sys_events = xEventGroupCreate();
+  g_auth_queue = xQueueCreate(QUEUE_AUTH_DEPTH, sizeof(auth_request_t));
+  g_log_queue = xQueueCreate(QUEUE_LOG_DEPTH, sizeof(log_entry_t));
+  g_display_queue = xQueueCreate(10, sizeof(uint8_t));
+  g_cloud_queue = xQueueCreate(10, sizeof(uint8_t));
+  g_cmd_queue = xQueueCreate(5, sizeof(uint8_t));
+  g_flash_mutex = xSemaphoreCreateMutex();
+  g_user_mutex = xSemaphoreCreateMutex();
+  g_display_mutex = xSemaphoreCreateMutex();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -221,6 +263,12 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  xTaskCreate(task_auth_entry,      "Auth",   STACK_AUTH,       NULL, PRIO_AUTH,       NULL);
+  xTaskCreate(task_display_entry,   "Disp",   STACK_DISPLAY,    NULL, PRIO_DISPLAY,    NULL);
+  xTaskCreate(task_keypad_entry,    "Keypad", STACK_KEYPAD,     NULL, PRIO_KEYPAD,     NULL);
+  xTaskCreate(task_logger_entry,    "Logger", STACK_LOGGER,     NULL, PRIO_LOGGER,     NULL);
+  xTaskCreate(task_cloud_entry,     "Cloud",  STACK_CLOUD,      NULL, PRIO_CLOUD,      NULL);
+  xTaskCreate(task_supervisor_entry,"Super",  STACK_SUPERVISOR, NULL, PRIO_SUPERVISOR, NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
