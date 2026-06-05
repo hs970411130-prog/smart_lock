@@ -7,8 +7,7 @@ static volatile uint8_t rx_done=0;
 int esp8266_send_at(const char *cmd, const char *expect, uint32_t to) {
     rx_done=0; rx_i=0;
     HAL_UART_Transmit(esp_u,(uint8_t*)cmd,strlen(cmd),100);
-    HAL_UART_Transmit(esp_u,(uint8_t*)"
-",2,100);
+    HAL_UART_Transmit(esp_u,(uint8_t*)"\r\n",2,100);
     uint32_t dl=HAL_GetTick()+to;
     while(HAL_GetTick()<dl){ if(rx_done){ rx_done=0; if(strstr(rx_buf,expect))return 0; if(strstr(rx_buf,"ERROR"))return -2; } }
     return -1;

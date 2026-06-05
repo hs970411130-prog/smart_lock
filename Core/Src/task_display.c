@@ -1,4 +1,5 @@
 #include "task_display.h"
+#include "task_auth.h"
 #include "drv_oled.h"
 static display_page_t pg=PAGE_HOME;
 static char toast[32];
